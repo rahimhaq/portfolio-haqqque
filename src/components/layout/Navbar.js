@@ -52,7 +52,7 @@ const Navbar = ({ lang, setLang }) => {
           {navLinks.map(link => (
             <a key={link.key} href={link.href} onClick={() => setMenuOpen(false)} className="block py-2 px-6 text-sm hover:bg-slate-50">{lang === 'en' ? link.en : link.id}</a>
           ))}
-          <a href="https://drive.google.com/file/d/1drl44u_OzYlp_Uluz8EB7mLWTbVLpxvd/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="block py-2 px-6 text-sm hover:bg-slate-50">{lang === 'en' ? 'View CV' : 'Lihat CV'}</a>
+          <a href="https://drive.google.com/file/d/1anWHaC1RGEADCy0QJXwpv4GImZof6aNK/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="block py-2 px-6 text-sm hover:bg-slate-50">{lang === 'en' ? 'View CV' : 'Lihat CV'}</a>
           <button onClick={toggleLanguage} className="m-3 text-xs px-3 py-1 border rounded-full hover-glow">
             {lang === 'en' ? 'ID' : 'EN'}
           </button>
