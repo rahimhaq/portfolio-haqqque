@@ -1,28 +1,15 @@
-import pool from '@/lib/db';
+// Ganti import default menjadi named import untuk fungsi 'sql'
+import { sql } from '@/lib/db';
 
 export default async function handler(req, res) {
   try {
-    // Mengambil semua teks dari tabel site_content
-    const [texts] = await pool.query('SELECT element_key, text_en, text_id FROM site_content');
+    // Gunakan fungsi 'sql' yang sudah diimpor untuk melakukan query
+    const siteContent = await sql('SELECT element_key, text_en, text_id FROM site_content');
     
-    // Mengambil semua proyek dari tabel projects
-    const [projects] = await pool.query('SELECT * FROM projects');
-
-    // Mengubah array teks menjadi objek agar mudah diakses
-    const contentData = texts.reduce((acc, item) => {
-      acc[item.element_key] = {
-        en: item.text_en,
-        id: item.text_id,
-      };
-      return acc;
-    }, {});
-
-    res.status(200).json({
-      texts: contentData,
-      projects: projects,
-    });
+    // Kirim data sebagai response JSON
+    res.status(200).json(siteContent);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Failed to fetch data' });
+    console.error('API route error:', error);
+    res.status(500).json({ message: 'Failed to fetch content' });
   }
 }
