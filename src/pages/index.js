@@ -1,5 +1,10 @@
-import { supabase } from '@/lib/supabase';
 import { useState, useEffect } from 'react';
+
+// Hapus import supabase
+// import { supabase } from '@/lib/supabase';
+
+// Import koneksi baru dari NeonDB
+import { sql } from '@/lib/db';
 
 import Navbar from '@/components/layout/Navbar';
 import Hero from '@/components/Hero';
@@ -11,23 +16,41 @@ import Footer from '@/components/layout/Footer';
 import ToTopButton from '@/components/ToTopButton';
 
 export async function getStaticProps() {
-  const { data: site_content, error: contentError } = await supabase.from('site_content').select('*');
-  const { data: projects, error: projectsError } = await supabase.from('projects').select('*');
+  try {
+    // Ambil data konten (About Me, dll) dengan query SQL standar
+    const contentRows = await sql('SELECT element_key, text_en, text_id FROM site_content');
 
-  if (contentError || projectsError) {
-    console.error(contentError || projectsError);
+    // Ubah format data agar sesuai dengan yang dibutuhkan komponen
+    const siteContent = contentRows.reduce((acc, row) => {
+      acc[row.element_key] = { en: row.text_en, id: row.text_id };
+      return acc;
+    }, {});
+
+    // Ambil data proyek dengan query SQL standar
+    const projects = await sql('SELECT * FROM projects ORDER BY id');
+
+    return {
+      props: {
+        siteContent,
+        projects,
+      },
+      revalidate: 60, // Periksa pembaruan setiap 60 detik
+    };
+  } catch (error) {
+    console.error('Failed to fetch data from NeonDB:', error);
+    // Jika database error, kembalikan props kosong agar halaman tidak rusak
+    return {
+      props: {
+        siteContent: {},
+        projects: [],
+      },
+      revalidate: 10,
+    };
   }
-
-  return {
-    props: {
-      site_content: site_content || [],
-      projects: projects || [],
-    },
-    revalidate: 60,
-  };
 }
 
-export default function Home({ site_content, projects }) {
+
+export default function Home({ siteContent, projects }) {
   const [lang, setLang] = useState('en');
 
   useEffect(() => {
@@ -38,30 +61,24 @@ export default function Home({ site_content, projects }) {
       setLang(localStorage.getItem('lang') || 'en');
     };
 
-    // Menggunakan 'languageChanged' event yang kita buat di Navbar
     window.addEventListener('languageChanged', handleStorageChange);
     return () => {
       window.removeEventListener('languageChanged', handleStorageChange);
     };
   }, []);
-
-  const texts = site_content.reduce((acc, item) => {
-    acc[item.element_key] = {
-      en: item.text_en,
-      id: item.text_id,
-    };
-    return acc;
-  }, {});
+  
+  // Hapus bagian `texts` karena data sudah diformat di getStaticProps
+  // const texts = site_content.reduce(...)
 
   return (
     <>
       <Navbar lang={lang} setLang={setLang} />
       <main className="container mx-auto px-6">
-        <Hero texts={texts} lang={lang} />
-        <About texts={texts} lang={lang} />
+        <Hero texts={siteContent} lang={lang} />
+        <About texts={siteContent} lang={lang} />
         <Projects projects={projects} lang={lang} />
         <Skills lang={lang} />
-        <Contact texts={texts} lang={lang} />
+        <Contact texts={siteContent} lang={lang} />
       </main>
       <Footer lang={lang} />
       <ToTopButton />

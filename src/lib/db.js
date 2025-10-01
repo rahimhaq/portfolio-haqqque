@@ -1,7 +1,17 @@
-import mysql from 'mysql2/promise';
+import { Pool } from '@neondatabase/serverless';
 
-// Membuat satu koneksi yang bisa digunakan kembali (pooling)
-// Ini sangat penting untuk performa di lingkungan serverless seperti Vercel
-const pool = mysql.createPool(process.env.DATABASE_URL);
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is not set');
+}
 
-export default pool;
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+export async function sql(query, params = []) {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(query, params);
+    return result.rows;
+  } finally {
+    client.release();
+  }
+}
