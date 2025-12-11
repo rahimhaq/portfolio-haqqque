@@ -1,10 +1,5 @@
 import { useState, useEffect } from 'react';
-
-// Hapus import supabase
-// import { supabase } from '@/lib/supabase';
-
-// Import koneksi baru dari NeonDB
-import { sql } from '@/lib/db';
+import { sql } from '@/lib/db'; // Import koneksi NeonDB
 
 import Navbar from '@/components/layout/Navbar';
 import Hero from '@/components/Hero';
@@ -17,28 +12,28 @@ import ToTopButton from '@/components/ToTopButton';
 
 export async function getStaticProps() {
   try {
-    // Ambil data konten (About Me, dll) dengan query SQL standar
+    // 1. Ambil data konten
     const contentRows = await sql('SELECT element_key, text_en, text_id FROM site_content');
 
-    // Ubah format data agar sesuai dengan yang dibutuhkan komponen
+    // Format data konten menjadi object
     const siteContent = contentRows.reduce((acc, row) => {
       acc[row.element_key] = { en: row.text_en, id: row.text_id };
       return acc;
     }, {});
 
-    // Ambil data proyek dengan query SQL standar
-    const projects = await sql('SELECT * FROM projects ORDER BY id');
+    // 2. Ambil data proyek
+    // UBAH: Tambahkan DESC agar project terbaru muncul di awal
+    const projects = await sql('SELECT * FROM projects ORDER BY id DESC');
 
     return {
       props: {
         siteContent,
-        projects,
+        projects: JSON.parse(JSON.stringify(projects)), // Serialisasi data tanggal/objek kompleks agar aman
       },
-      revalidate: 60, // Periksa pembaruan setiap 60 detik
+      revalidate: 10, // Update halaman setiap 10 detik jika ada request baru
     };
   } catch (error) {
     console.error('Failed to fetch data from NeonDB:', error);
-    // Jika database error, kembalikan props kosong agar halaman tidak rusak
     return {
       props: {
         siteContent: {},
@@ -48,7 +43,6 @@ export async function getStaticProps() {
     };
   }
 }
-
 
 export default function Home({ siteContent, projects }) {
   const [lang, setLang] = useState('en');
@@ -66,17 +60,18 @@ export default function Home({ siteContent, projects }) {
       window.removeEventListener('languageChanged', handleStorageChange);
     };
   }, []);
-  
-  // Hapus bagian `texts` karena data sudah diformat di getStaticProps
-  // const texts = site_content.reduce(...)
 
   return (
     <>
       <Navbar lang={lang} setLang={setLang} />
       <main className="container mx-auto px-6">
+        {/* Pass siteContent ke komponen yang butuh teks dinamis */}
         <Hero texts={siteContent} lang={lang} />
         <About texts={siteContent} lang={lang} />
+        
+        {/* Pass projects dari database ke komponen Projects */}
         <Projects projects={projects} lang={lang} />
+        
         <Skills lang={lang} />
         <Contact texts={siteContent} lang={lang} />
       </main>
