@@ -36,7 +36,7 @@ const Navbar = ({ lang, setLang }) => {
           {navLinks.map(link => (
             <a key={link.key} href={link.href} className="text-slate-600 hover:text-primary transition">{lang === 'en' ? link.en : link.id}</a>
           ))}
-          <a href="https://drive.google.com/file/d/1anWHaC1RGEADCy0QJXwpv4GImZof6aNK/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="hidden lg:inline-block bg-primary hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">
+          <a href="https://drive.google.com/file/d/1axqkqlv3M9D01MHCduhv0FIeVc9fKJvh/view?usp=sharing" target="_blank" rel="noopener noreferrer" className="hidden lg:inline-block bg-primary hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">
             {lang === 'en' ? 'View CV' : 'Lihat CV'}
           </a>
           <button onClick={toggleLanguage} className="text-xs px-3 py-1 border rounded-full hover-glow" aria-label="Toggle language">
